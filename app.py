@@ -1,6 +1,9 @@
 from flask import Flask
-app = Flask(__name__)
+from dotenv import load_dotenv
+from blueprint.location_blueprint import location_blueprint
 
-@app.route('/')
-def hello():
-    return 'Hello World!'
+# loading environment variable for google api key
+load_dotenv()
+
+app = Flask(__name__)
+app.register_blueprint(location_blueprint)
