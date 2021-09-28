@@ -1,30 +1,16 @@
-from flask import Blueprint
-import requests
-import json
-import os
-import traceback
-
-
-location_blueprint = Blueprint('location', __name__)
-error = False
-
-@location_blueprint.route('/<destination>/')
-def index(destination: str):
-  # if destination isn't a empty string
-  if(destination):
-    if(is_address_valid(destination)):
-      res = api_request(destination)
-      return res if not error else "Error: %s" % (res)
-    else:
-      return "MKAD destination coord: no output in .log file"
-  else:
-    return "Empty destination"
-
-
-
-
-#######################################
+######################################
 # MKAD coordinates array, stringified to 
+# IN THIS ARRAY, and fixed logitude and lattitude
+# the lists are inverted, longitude and lattitude, 
+# so I inverted to work with google API
+def normalize_mkad(add):
+  lon = add.split(',')[0]
+  lat = add.split(',')[1]
+  return "%s,%s" % (lat, lon)
+
+
+
+
 mkad = [
 "37.842762,55.774558",
 "37.842789,55.76522",
@@ -136,58 +122,9 @@ mkad = [
 "37.841576,55.785017"
 ]
 
+normalized_mkad = []
 
-def is_address_valid(add: str) -> bool:
-    return not add in mkad
-
-
-def make_url(origin: str = '', destination: str = '') -> str:
-    # origin = urllib.parse.quote(origin)
-    # destination = urllib.parse.quote(destination)
-    return "https://maps.googleapis.com/maps/api/distancematrix/json?origins=%s&destinations=%s&key=AIzaSyCPss-SPGHDWYdKaJd2h061lWklmH8GwkM" % (origin, destination)
-    
-
-def write_to_file(origin: str, destination:str, meters:str):
-    f = open(".log", "a")
-    f.write("%s -> %s: %s\n" % (origin, destination,meters))
-    f.close()
+for coord in mkad:
+  normalized_mkad.append(normalize_mkad(coord))
 
 
-# API request method, return distance in meters or an error message
-# args can be a name of a city or a coord
-def api_request(destination: str) -> str:  
-  try:
-    # origin is mkad km 1
-    origin = mkad[0]
-
-    # get response
-    response = requests.request("GET",make_url(origin, destination))
-
-    # parse it
-    json_parsed = json.loads(response.text)
-
-    # string name to put in .log file
-    origin_name = json_parsed['origin_addresses'][0]
-    destination_name = json_parsed['destination_addresses'][0]
-
-    # get meters
-    kilometers = json_parsed['rows'][0]['elements'][0]['distance']['text']
-    # write to a .log file
-    write_to_file(origin_name, destination_name, kilometers)
-    return kilometers
-  except:
-    # returning a invalid destination or origin
-    print(traceback.format_exc())
-    return "There's not road that connects MKAD to %s" % (destination)
-
-
-# I'm using distance matrix, from google apis
-# The Yandex api is kind of confusing and they don't give me a working api key
-# unless I get a plan, 1000 request a day for $2000/month
-def make_url(origin, destination):
-    return "https://maps.googleapis.com/maps/api/distancematrix/json?origins=%s&destinations=%s&key=%s" % (origin, destination, os.getenv("GDM_API_KEY"))
-
-
-
-
-  
