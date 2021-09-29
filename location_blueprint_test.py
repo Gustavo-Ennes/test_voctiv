@@ -1,5 +1,8 @@
-from ..src.blueprint.location_blueprint import *
-from ..src.blueprint.mkad_coord import normalize_mkad, normalized_mkad
+from .location_blueprint import *
+from .mkad_coord import normalize_mkad, normalized_mkad
+
+
+#LET'S DEPLOY THIS SHIT MAN
 
 def test_id_address_valid():
   valid = "-22.322, 2.823" 

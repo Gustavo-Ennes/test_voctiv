@@ -1,6 +1,6 @@
 from flask import Flask
 from dotenv import load_dotenv
-from blueprint.location_blueprint import location_blueprint
+from .location_blueprint import location_blueprint
 
 # loading environment variable for google api key
 load_dotenv()
